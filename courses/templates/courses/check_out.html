@@ -1,0 +1,111 @@
+{% extends './base.html' %}
+{% load static %}
+{% block title %}
+Checkout
+{% endblock %}
+{% load course_custom_tags %}
+{% block content %}
+
+<div class="container">
+    <br>
+    <br>
+    <div class="row">
+        <div class="col mx-auto">
+            <div class="card ms-auto" style="width: 18rem;">
+                <img src="{{ course.thumbnail.url }}" class="card-img-top" alt="...">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.name }}</h5>
+                    <p class="card-text m-0 p-0">
+                        Save {{ course.discount }}%
+                        <br>
+                        <span class="price">
+                            <del>{{ course.price|taka }}</del>
+                            &nbsp;
+                            <span>{% cal_sellprice course.price course.discount as value %} {{ value|taka }}</span>
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div>
+                <p class="display-5">{{ course.name }}</p>
+                <hr>
+                {% if coupon %}
+
+                <p class="alert alert-light border ">
+                    Coupon Code Applied
+                    You Have Got {{coupon.discount}}% Discount
+                </p>
+                <br>
+                <p class="display-5">Payable Amount : <b>{% cal_sellprice course.price coupon.discount as value %}
+                        {{value|taka}}</b></p>
+
+                <a class="btn btn-light border" href="?action=create_payment&couponcode={{coupon.code}}">Continue to
+                    Payment</a>
+
+                {%else%}
+                <p class="display-5">Payable Amount : <b>{% cal_sellprice course.price course.discount as value %}
+                        {{value|taka}}</b></p>
+
+                <a class="btn btn-light border" href="?action=create_payment">Continue to Payment</a>
+
+                {%endif %}
+            </div>
+            <br>
+            <div class="border p-4 rounded border-success">
+                {% if coupon_code_message %}
+                    <div class="alert alert-info">
+                        {{ coupon_code_message }}
+                    </div>
+                {% endif %}
+                <p>Coupon Code: </p>
+                <form action="" method="get">
+                    <div class="col-lg-5 form-group">
+                        <input type="text" name="couponcode" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" value="Apply" class="btn btn-success">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+{% if order is not None %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    var options = {
+        "key": "rzp_test_aLz3Q05OQKm4Jf",
+        "name": "Going To Learn",
+        "description": "Pay for {{ course.name }}",
+        "image": "https://example.com/your_logo",
+        "order_id": "{{ order.id }}",
+        "callback_url": "http://127.0.0.1:8000/verify_payment/",
+        "prefill": {
+            "name": "{{ user.name }}",
+            "email": "{{ user.email }}",
+        },
+        "theme": {
+            "color": "#3399cc"
+        }
+    };
+    var rzp1 = new Razorpay(options);
+    rzp1.open();
+</script>
+{% endif %}
+
+{% if error is not None %}
+<script>
+    window.onload = ()=>{
+        alert("{{ error }}")
+    }
+</script>
+{% endif %}
+
+
+{% endblock %}
